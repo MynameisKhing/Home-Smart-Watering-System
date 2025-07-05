@@ -1,0 +1,20 @@
+# dependencies
+/node_modules
+
+# dotenv environment files
+.env
+
+# build output
+/dist
+/build
+
+# logs
+logs
+*.log
+npm-debug.log*
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.vscode
+.idea

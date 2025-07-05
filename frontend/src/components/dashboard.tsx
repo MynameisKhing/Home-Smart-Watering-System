@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">🌱 Smart Watering Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-4">Smart Watering Dashboard</h1>
       <div className="grid grid-cols-2 gap-4">
         {Object.entries(data).map(([topic, value]) => (
           <div key={topic} className="p-4 border rounded shadow">
