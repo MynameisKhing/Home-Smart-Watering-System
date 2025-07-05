@@ -3,6 +3,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const mqtt = require("mqtt");
+const { insertData, getHistory } = require("./db");
 
 const app = express();
 const server = http.createServer(app);
@@ -15,9 +16,8 @@ const io = new Server(server, {
 const MQTT_BROKER = process.env.MQTT_BROKER;
 const PORT = process.env.PORT || 3000;
 
+// ประกาศตรงนี้ก่อน
 const mqttClient = mqtt.connect(MQTT_BROKER);
-
-let historyData = []; // store last 100 data points
 
 mqttClient.on("connect", () => {
   console.log("Connected to MQTT Broker");
@@ -31,29 +31,25 @@ mqttClient.on("message", (topic, message) => {
   console.log(`[MQTT] ${topic}: ${value}`);
   io.emit("sensor-data", { topic, value });
 
-  // เก็บประวัติย้อนหลัง
-  historyData.push({ topic, value, time });
-  if (historyData.length > 100) historyData.shift();
+  insertData(topic, value, time);
 
-  // ตรวจเงื่อนไขแจ้งเตือน
   if (topic === "sensor/tds" && value > 500) {
     io.emit("notification", `TDS สูงเกิน: ${value}`);
   }
 });
 
-// รับคำสั่งจาก frontend
 io.on("connection", (socket) => {
   console.log("Frontend connected");
 
   socket.on("control-water", (cmd) => {
-    console.log(`💧 Control command: ${cmd}`);
+    console.log(`Control command: ${cmd}`);
     mqttClient.publish("actuator/water_pump", cmd);
   });
 });
 
-// API สำหรับประวัติย้อนหลัง
 app.get("/api/history", (req, res) => {
-  res.json(historyData);
+  const history = getHistory(100);
+  res.json(history);
 });
 
 server.listen(PORT, () => {
